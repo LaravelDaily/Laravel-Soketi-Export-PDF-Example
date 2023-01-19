@@ -1,0 +1,82 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Users') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="overflow-hidden overflow-x-auto p-6 bg-white border-b border-gray-200">
+                    <div class="pb-6">
+                        <button id="export-button" class="bg-blue-600 text-white rounded px-4 py-3 mr-4" type="button">
+                            Export PDF
+                        </button>
+                        <span id="export-status" class="font-bold"></span>
+                    </div>
+
+                    <div class="min-w-full align-middle">
+                        <table class="min-w-full divide-y divide-gray-200 border">
+                            <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left">
+                                    <span class="text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Name</span>
+                                </th>
+                                <th class="px-6 py-3 bg-gray-50 text-left">
+                                    <span class="text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Email</span>
+                                </th>
+                            </tr>
+                            </thead>
+
+                            <tbody class="bg-white divide-y divide-gray-200 divide-solid">
+                            @foreach($users as $user)
+                                <tr class="bg-white">
+                                    <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-900">
+                                        {{ $user->name }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-900">
+                                        {{ $user->email }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-2">
+                        {{ $users->links() }}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var channel = window.Echo.private('App.Models.User.' + {{ auth()->id() }});
+
+  channel.listen('ExportPdfStatusUpdated', function (e) {
+    console.log(e)
+    var span = document.getElementById('export-status');
+
+    if (e.link !== null) {
+      var link_template = `<a href="${e.link}" target="_blank" class="text-blue-600 underline">${e.link}</a>`;
+
+      span.innerHTML = e.message + ' ' + link_template;
+
+      return
+    }
+
+    span.innerHTML = e.message;
+  });
+
+  var button = document.getElementById('export-button');
+
+  button.addEventListener('click', function () {
+    axios.post('/api/export-pdf');
+  });
+})
+</script>
+</x-app-layout>
